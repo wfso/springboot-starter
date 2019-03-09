@@ -1,0 +1,130 @@
+#!/bin/bash
+#本脚本基本无需改动，注意要点均已用中文说明
+# 1. 请将本脚本放到Linux系统的path路径下，最好是/bin目录下
+# 2. 请给本脚本设备可执行权限
+# 3. 启动示例         springboot-starter xxx.jar start
+# 4. 重启示例         springboot-starter xxx.jar restart
+# 5. 停止示例         springboot-starter xxx.jar stop
+# 6. 查看状态示例     springboot-starter xxx.jar status
+
+## 输出本命令的使用方法 并退出
+usage() {
+    echo "Usage: springboot-starter [app_name].jar [start|stop|restart|status]"
+    exit 1
+}
+
+## 判断是否输入了两个参数
+if [ $# -lt 2 ]; then
+    usage
+fi
+
+
+## 脚本名称
+APP_NAME=$1;
+
+## 操作
+OPERATION=$2;
+
+## jvm 参数
+XMS=$3
+XMX=$4
+
+## 获取 java 命令的路径
+JAVA_CMD=`which java`
+
+if [ -z "$JAVA_CMD" ];then
+  echo "Please install the Java environment";
+  exit 1;
+fi
+
+if [ -z "$XMS" ]; then
+    XMS="-Xms256m"
+  else
+    XMS="-Xms${XMS}m"
+fi
+if [ -z "$XMX" ]; then
+    XMX="-Xms512m"
+  else
+    XMX="-Xms${XMX}m"
+fi
+
+## 脚本所在目录，绝对路径表示
+BASE_PATH=$(cd `dirname $APP_NAME`;pwd)
+
+## 去掉所有目录后的脚本名
+APP_NAME=${APP_NAME##*/}
+
+## 脚本的路径，绝对路径表示
+APP_PATH=$BASE_PATH"/"$APP_NAME
+
+
+## 判断目标程序是否已经启动
+is_running(){
+  ## 尝试获取已经运行程序的PID
+  PID=`ps -ef|grep $APP_PATH|grep -v grep|awk '{print $2}'`
+  if [ -z "$PID" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+## 启动程序
+start(){
+  is_running
+  if [ $? -eq "1" ]; then
+    echo "${APP_NAME} is already running. pid is ${PID} ."
+  else
+    ## 启动 jar 包
+    echo "${APP_NAME} starting ...... "
+    nohup $JAVA_CMD -jar ${XMS} ${XMX} -Dspring.profiles.active=production ${APP_PATH} > /dev/null 2>&1 &
+    sleep 1
+    echo "${APP_NAME} started  completed "
+  fi
+}
+
+## 停止程序
+stop(){
+  is_running
+  if [ $? -eq "1" ]; then
+    echo "PID is $PID, ${APP_NAME}  stopping ...... "
+    kill -9 $PID
+    sleep 1
+    echo "${APP_NAME} stopped completed "
+  else
+    echo "${APP_NAME} is not running"
+  fi
+}
+
+## 输出程序运行状态
+status(){
+  is_running
+  if [ $? -eq "1" ]; then
+    echo "${APP_NAME} is running. pid is ${PID}"
+  else
+    echo "${APP_NAME} is NOT running."
+  fi
+}
+
+## 重启程序
+restart(){
+  stop
+  start
+}
+
+
+case "$OPERATION" in
+  "start")
+    start ;;
+  "stop")
+    stop ;;
+  "status")
+    status ;;
+  "restart")
+    restart ;;
+  *)
+    usage ;;
+esac
+exit 0
+
+
