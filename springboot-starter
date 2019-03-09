@@ -7,6 +7,14 @@
 # 5. 停止示例         springboot-starter xxx.jar stop
 # 6. 查看状态示例     springboot-starter xxx.jar status
 
+## 获取 java 命令的路径
+JAVA_CMD=`which java`
+
+if [ -z "$JAVA_CMD" ];then
+  echo "Please install the Java environment";
+  exit 1;
+fi
+
 ## 输出本命令的使用方法 并退出
 usage() {
     echo "Usage: springboot-starter [app_name].jar [start|stop|restart|status]"
@@ -28,14 +36,6 @@ OPERATION=$2;
 ## jvm 参数
 XMS=$3
 XMX=$4
-
-## 获取 java 命令的路径
-JAVA_CMD=`which java`
-
-if [ -z "$JAVA_CMD" ];then
-  echo "Please install the Java environment";
-  exit 1;
-fi
 
 if [ -z "$XMS" ]; then
     XMS="-Xms256m"
