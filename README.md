@@ -9,3 +9,5 @@
 4. 重启示例         springboot-starter xxx.jar restart
 5. 停止示例         springboot-starter xxx.jar stop
 6. 查看状态示例     springboot-starter xxx.jar status
+
+如需要更多高级用法，请阅读源码
